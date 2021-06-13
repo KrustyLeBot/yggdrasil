@@ -19,6 +19,7 @@
   "homepage": "https://github.com/KrustyLeBot/yggdrasil#readme",
   "dependencies": {
     "express": "^4.17.1",
+    "fs": "0.0.1-security",
     "redis": "^3.1.2",
     "utils": "^0.3.1"
   }
