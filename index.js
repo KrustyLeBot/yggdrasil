@@ -1,14 +1,19 @@
-var http = require("http");
+const express = require('express')
 
-http.createServer(function (request, response) {
-    // Send the HTTP header 
-    // HTTP Status: 200 : OK
-    // Content Type: text/plain
-    response.writeHead(200, {'Content-Type': 'text/plain'});
-    
-    // Send the response body as "Hello World"
-    response.end('Hello World\n');
- }).listen(80);
- 
- // Console will print the message
- console.log('Server running at http://127.0.0.1:80/');
+const PORT = process.env.PORT || 5000
+const app = express()
+
+app.use(express.json())
+
+app.get('/', function (req, res) {
+    res.send('Hello World!');
+});
+
+app.get('/ping', function (req, res) {
+    console.log('ping recu');
+    res.send('Pong');
+});
+
+app.listen(PORT, function () {
+    console.log(`Listening on ${ PORT }`);
+});
