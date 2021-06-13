@@ -6,20 +6,22 @@ const fs = require("fs");
 // Constants
 const PORT = process.env.PORT || 5000;
 
+// Redis client
+const client = redis.createClient(process.env.REDIS_URL);
+
+client.on('connect', () => {
+    console.log('##########################################################');
+    console.log('#####            REDIS STORE CONNECTED               #####');
+    console.log('##########################################################\n');
+});
+
+client.on("error", function (err) {
+    console.log("Error " + err);
+});
+
 // Express App
 const app = express();
 app.use(express.json());
-
-// Redis client
-const client = redis.createClient(process.env.REDIS_URL, {
-    tls: {
-        rejectUnauthorized: false
-    }
-});
-
-client.on("error", (error) => {
-    console.error(error);
-});
 
 // Express endpoints
 app.get('/', function (req, res) {
@@ -47,7 +49,7 @@ app.get('/retrieve', async function (req, res) {
                 data: JSON.parse(value)
             });
         }
-        else{
+        else {
             return res.status(200).send({
                 error: true,
                 message: `Key not found`,
