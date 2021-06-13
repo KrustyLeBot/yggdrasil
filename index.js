@@ -10,11 +10,15 @@ const app = express();
 app.use(express.json());
 
 // Redis client
-const client = redis.createClient(process.env.REDIS_URL, {
-    tls: {
-        rejectUnauthorized: false
-    }
-});
+if (process.env.REDISTOGO_URL) {
+    var rtg = require("url").parse(process.env.REDISTOGO_URL);
+    var client = redis.createClient(rtg.port, rtg.hostname);
+
+    redis.auth(rtg.auth.split(":")[1]);
+}
+else {
+    var client = redis.createClient();
+}
 
 // Express endpoints
 app.get('/', function (req, res) {
@@ -27,8 +31,8 @@ app.get('/ping', function (req, res) {
 });
 
 app.get('/insert', async function (req, res) {
-    client.set("foo","bar",function(){});
-    res.send(JSON.stringify({result : "ok"}, null, 4));
+    client.set("foo", "bar", function () { });
+    res.send(JSON.stringify({ result: "ok" }, null, 4));
 });
 
 app.get('/retrieve', async function (req, res) {
