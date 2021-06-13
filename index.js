@@ -1,7 +1,6 @@
 // Includes
 const express = require('express');
 const redis = require("redis");
-const { promisify } = require("util");
 
 // Constants
 const PORT = process.env.PORT || 5000;
@@ -17,9 +16,6 @@ const client = redis.createClient(process.env.REDIS_URL, {
     }
 });
 
-const getAsync = promisify(client.get).bind(client);
-const setAsync = promisify(client.set).bind(client);
-
 // Express endpoints
 app.get('/', function (req, res) {
     res.send('Hello World!');
@@ -31,15 +27,15 @@ app.get('/ping', function (req, res) {
 });
 
 app.get('/insert', async function (req, res) {
-    const value = await getAsync("foo", "bar");
-    console.log(value);
-    res.send("Ok");
+    client.set("foo","bar",function(){});
+    res.send(JSON.stringify({result : "ok"}, null, 4));
 });
 
 app.get('/retrieve', async function (req, res) {
-    const value = await getAsync("foo");
-    console.log(value);
-    res.send(value);
+
+    client.get("foo", function (err, value) {
+        res.send(JSON.stringify({ 'key': "foo", 'value': value }, null, 4));
+    });
 });
 
 app.listen(PORT, function () {
