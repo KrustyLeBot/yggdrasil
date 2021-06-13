@@ -23,8 +23,13 @@ app.get('/', function (req, res) {
 });
 
 app.get('/ping', function (req, res) {
-    console.log('ping recu');
-    res.send('Pong');
+
+    client.query('SELECT * FROM test', (error, results) => {
+        if (error) {
+          throw error;
+        }
+        response.status(200).send(results.rows);
+      });
 });
 
 app.listen(PORT, function () {
