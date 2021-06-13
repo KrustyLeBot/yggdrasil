@@ -31,18 +31,13 @@ app.get('/ping', function (req, res) {
 });
 
 app.get('/insert', async function (req, res) {
-    const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
-    console.log('ping recu de ' + ip);
-
-    const value = await getAsync(ip, "toto");
+    const value = await getAsync("foo", "bar");
     console.log(value);
-
-    res.end();
+    res.send("Ok");
 });
 
 app.get('/retrieve', async function (req, res) {
-    const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
-    const value = await getAsync(ip);
+    const value = await getAsync("foo");
     console.log(value);
     res.send(value);
 });
