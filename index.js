@@ -7,7 +7,7 @@ const PORT = process.env.PORT || 5000;
 
 //////////////////////////////////////////////////////////////
 // Postgresql => Create a pool of 20 connections max
-// Replace  with URI for local tests
+// Replace xxxxx with URI for local tests
 const conString = process.env.DATABASE_URL || 'xxxxx';
 
 const pool = new pg.Pool({
