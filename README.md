@@ -1,3 +1,0 @@
-# yggdrasil
-
-HTTP request logger
