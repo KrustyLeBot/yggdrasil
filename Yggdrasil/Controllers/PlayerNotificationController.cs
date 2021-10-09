@@ -10,28 +10,19 @@ using Yggdrasil.Models;
 namespace Yggdrasil.Controllers
 {
     [Route("/[controller]")]
-    public class HomeController : Controller
+    public class PlayerNotificationController : Controller
     {
-        private readonly ILogger<HomeController> _logger;
+        private readonly ILogger<PlayerNotificationController> _logger;
 
-        public HomeController(ILogger<HomeController> logger)
+        public PlayerNotificationController(ILogger<PlayerNotificationController> logger)
         {
             _logger = logger;
         }
 
-        [HttpGet("")]
-        [HttpGet("Index")]
-        [HttpGet("Index/{id?}")]
-        public IActionResult Index()
+        [HttpGet("toto/{id?}")]
+        public IActionResult TestAction(int? id)
         {
-            return View();
-        }
-
-        [HttpGet("Privacy")]
-        [HttpGet("Privacy/{id?}")]
-        public IActionResult Privacy()
-        {
-            return View();
+            return Ok(id);
         }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
