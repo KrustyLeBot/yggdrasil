@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
 using MongoDB.Driver;
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Yggdrasil.Models;
 
@@ -34,6 +35,28 @@ namespace Yggdrasil.DAL
             var profile = await cursor.FirstOrDefaultAsync();
 
             return profile;
+        }
+
+        public async Task InsertOfflineNotification(string recipientProfileId, string senderProfileId, string message)
+        {
+            OfflinePlayerNotification notif = new OfflinePlayerNotification()
+            {
+                SenderProfileId = senderProfileId,
+                Content = message
+            };
+
+            var update = Builders<PlayerRecordModel>.Update
+                .Push(doc => doc.OfflineNotifications, notif);
+
+            await _playerRecordCollection.UpdateOneAsync(doc => doc.ProfileId == recipientProfileId, update);
+        }
+
+        public async Task EmptyOfflineNotification(string profileId)
+        {
+            var update = Builders<PlayerRecordModel>.Update
+                .Set(doc => doc.OfflineNotifications, new List<OfflinePlayerNotification>());
+
+            await _playerRecordCollection.UpdateOneAsync(doc => doc.ProfileId == profileId, update);
         }
     }
 }

@@ -45,8 +45,18 @@ namespace Yggdrasil.Services.PlayerNotification
             // register the messaging queue
             _websocketList.Add(profile.ProfileId, webSocket);
 
-            _logger.Log(LogLevel.Information, "WebSocket connection established");
+            // empty offline notif list
+            await _dataAccessLayer.EmptyOfflineNotification(profile.ProfileId);
 
+            // send all offline notif
+            List<Task> tasks = new List<Task>();
+            foreach (var notif in profile.OfflineNotifications)
+            {
+                tasks.Add(SendPlayerNotification(notif.SenderProfileId, profile.ProfileId, notif.Content, true));
+            }
+            await Task.WhenAll(tasks);
+
+            _logger.Log(LogLevel.Information, "WebSocket connection established");
             await KeepAlive(webSocket, profile.ProfileId);
             return 200;
         }
@@ -72,7 +82,28 @@ namespace Yggdrasil.Services.PlayerNotification
 
             if(notif.IsOffline)
             {
-                // save msg in db
+                await _dataAccessLayer.InsertOfflineNotification(notif.RecipientProfileId, profile.ProfileId, notif.Content);
+                return 201;
+            }
+
+            return 410;
+        }
+
+        private async Task<int> SendPlayerNotification(string senderProfileId, string recipientProfileId, string content, bool isOffline)
+        {
+            if (_websocketList.TryGetValue(recipientProfileId, out WebSocket webSocket))
+            {
+                var message = Encoding.UTF8.GetBytes($"Server: Hello. {senderProfileId} sent you: {content}");
+                await webSocket.SendAsync(new ArraySegment<byte>(message, 0, message.Length), WebSocketMessageType.Text, true, CancellationToken.None);
+                _logger.Log(LogLevel.Information, "Message sent to Client");
+
+                return 200;
+            }
+
+
+            if (isOffline)
+            {
+                await _dataAccessLayer.InsertOfflineNotification(recipientProfileId, senderProfileId, content);
                 return 201;
             }
 

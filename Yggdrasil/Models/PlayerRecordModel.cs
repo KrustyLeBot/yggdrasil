@@ -1,4 +1,5 @@
 ﻿using MongoDB.Bson.Serialization.Attributes;
+using System.Collections.Generic;
 
 namespace Yggdrasil.Models
 {
@@ -7,7 +8,11 @@ namespace Yggdrasil.Models
     {
         [BsonRequired]
         public string ApiKey { get; set; }
+
         [BsonRequired]
         public string ProfileId { get; set; }
+
+        [BsonRequired]
+        public List<OfflinePlayerNotification> OfflineNotifications { get; set; }
     }
 }

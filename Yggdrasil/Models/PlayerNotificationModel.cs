@@ -11,4 +11,10 @@ namespace Yggdrasil.Models
         public string Content { get; set; }
         public bool IsOffline { get; set; }
     }
+
+    public class OfflinePlayerNotification
+    {
+        public string SenderProfileId { get; set; }
+        public string Content { get; set; }
+    }
 }
