@@ -1,5 +1,3 @@
-using System;
-
 namespace Yggdrasil.Models
 {
     public class ErrorViewModel

@@ -1,13 +1,10 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using Yggdrasil.DAL;
+using Yggdrasil.Services.PlayerNotification;
 
 namespace Yggdrasil
 {
@@ -24,6 +21,9 @@ namespace Yggdrasil
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllersWithViews();
+
+            services.AddSingleton<IDataAccessLayer, DataAccessLayer>()
+                .AddSingleton<IPlayerNotificationService, PlayerNotificationService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -46,12 +46,12 @@ namespace Yggdrasil
 
             app.UseAuthorization();
 
+            app.UseWebSockets();
+
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
             });
-
-            var mongoDbConnectionString = Environment.GetEnvironmentVariable("MONGODB_URI");
         }
     }
 }
