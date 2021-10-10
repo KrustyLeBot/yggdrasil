@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using System;
 using Yggdrasil.DAL;
 using Yggdrasil.Services.PlayerNotification;
 
@@ -32,6 +33,14 @@ namespace Yggdrasil
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
+
+                var mongoDbConnectionString = Environment.GetEnvironmentVariable("MONGODB_URI", EnvironmentVariableTarget.User);
+                var mongoDbName = Environment.GetEnvironmentVariable("MONGODB_DB_NAME", EnvironmentVariableTarget.User);
+                var mongoDbCollection = Environment.GetEnvironmentVariable("MONGODB_COLLECTION_NAME", EnvironmentVariableTarget.User);
+
+                Environment.SetEnvironmentVariable("MONGODB_URI", mongoDbConnectionString);
+                Environment.SetEnvironmentVariable("MONGODB_DB_NAME", mongoDbName);
+                Environment.SetEnvironmentVariable("MONGODB_COLLECTION_NAME", mongoDbCollection);
             }
             else
             {
