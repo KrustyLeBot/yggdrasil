@@ -1,4 +1,5 @@
 ﻿using MongoDB.Bson.Serialization.Attributes;
+using System;
 using System.Collections.Generic;
 
 namespace Yggdrasil.Models
@@ -14,5 +15,14 @@ namespace Yggdrasil.Models
 
         [BsonRequired]
         public List<DBPlayerNotification> PlayerNotifications { get; set; }
+
+        [BsonRequired]
+        public DateTime LastPnotSentTime { get; set; }
+    }
+
+    public class PlayerRecordBaseInfo
+    {
+        public string ApiKey { get; set; }
+        public string ProfileId { get; set; }
     }
 }

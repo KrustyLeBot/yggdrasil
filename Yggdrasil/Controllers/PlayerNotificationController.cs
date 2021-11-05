@@ -1,7 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using System.Diagnostics;
+using System.Net;
 using System.Threading.Tasks;
+using Yggdrasil.HttpExceptions;
 using Yggdrasil.Models;
 using Yggdrasil.Services.PlayerNotification;
 
@@ -19,7 +21,27 @@ namespace Yggdrasil.Controllers
             _playerNotificationService = playerNotificationService;
         }
 
-        [HttpPost("playernotification")]
+        /////////////////////////////////////////////////////////////////////////////////////////
+        // Admin
+        [HttpPost("admin/playernotification")]
+        public async Task<IActionResult> PostPlayerNotificationAdmin([FromBody] PlayerNotificationModel notif)
+        {
+            Request.Headers.TryGetValue("Authorization", out var apiKey);
+            Request.Headers.TryGetValue("AppId", out var appId);
+
+            if(appId.ToString() == "")
+            {
+                throw new HttpResponseException(HttpStatusCode.BadRequest, "Invalid app id.");
+            }
+
+            await _playerNotificationService.SendPlayerNotificationAdmin(apiKey, notif, appId);
+            return Ok();
+        }
+        /////////////////////////////////////////////////////////////////////////////////////////
+
+        /////////////////////////////////////////////////////////////////////////////////////////
+        // Client
+        [HttpPost("client/playernotification")]
         public async Task<IActionResult> PostPlayerNotification([FromBody] PlayerNotificationModel notif)
         {
             Request.Headers.TryGetValue("Authorization", out var apiKey);
@@ -28,13 +50,14 @@ namespace Yggdrasil.Controllers
             return Ok();
         }
 
-        [HttpGet("playernotification")]
+        [HttpGet("client/playernotification")]
         public async Task<IActionResult> GetPlayerNotification()
         {
             Request.Headers.TryGetValue("Authorization", out var apiKey);
 
             return Ok(await _playerNotificationService.GetAllPlayerNotifications(apiKey));
         }
+        /////////////////////////////////////////////////////////////////////////////////////////
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()

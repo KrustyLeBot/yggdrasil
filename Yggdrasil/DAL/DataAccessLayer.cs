@@ -29,9 +29,17 @@ namespace Yggdrasil.DAL
             _playerRecordCollection = _database.GetCollection<PlayerRecordModel>(mongoDbCollection);
         }
 
-        public async Task<PlayerRecordModel> GetPlayerRecord(string apiKey)
+        public async Task<PlayerRecordModel> GetPlayerRecordByApiKey(string apiKey)
         {
             IAsyncCursor<PlayerRecordModel> cursor = await _playerRecordCollection.FindAsync(doc => doc.ApiKey == apiKey);
+            var profile = await cursor.FirstOrDefaultAsync();
+
+            return profile;
+        }
+
+        public async Task<PlayerRecordModel> GetPlayerRecordByProfileId(string profileId)
+        {
+            IAsyncCursor<PlayerRecordModel> cursor = await _playerRecordCollection.FindAsync(doc => doc.ProfileId == profileId);
             var profile = await cursor.FirstOrDefaultAsync();
 
             return profile;
@@ -49,6 +57,11 @@ namespace Yggdrasil.DAL
                 .Push(doc => doc.PlayerNotifications, notif);
 
             await _playerRecordCollection.UpdateOneAsync(doc => doc.ProfileId == recipientProfileId, update);
+
+            var update2 = Builders<PlayerRecordModel>.Update
+                .Set(doc => doc.LastPnotSentTime, DateTime.UtcNow);
+
+            await _playerRecordCollection.UpdateOneAsync(doc => doc.ProfileId == senderProfileId, update2);
         }
 
         public async Task EmptyPlayerNotifications(string profileId)
@@ -57,6 +70,24 @@ namespace Yggdrasil.DAL
                 .Set(doc => doc.PlayerNotifications, new List<DBPlayerNotification>());
 
             await _playerRecordCollection.UpdateOneAsync(doc => doc.ProfileId == profileId, update);
+        }
+
+        public async Task CreatePlayerRecord(PlayerRecordBaseInfo info)
+        {
+            PlayerRecordModel record = new PlayerRecordModel()
+            {
+                ProfileId = info.ProfileId,
+                ApiKey = info.ApiKey,
+                PlayerNotifications = new List<DBPlayerNotification>(),
+                LastPnotSentTime = DateTime.MinValue
+            };
+
+            await _playerRecordCollection.InsertOneAsync(record);
+        }
+
+        public async Task DeletePlayerRecord(string profileId)
+        {
+            await _playerRecordCollection.DeleteOneAsync(doc => doc.ProfileId == profileId);
         }
     }
 }

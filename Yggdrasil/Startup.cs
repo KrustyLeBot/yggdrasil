@@ -7,6 +7,7 @@ using System;
 using Yggdrasil.DAL;
 using Yggdrasil.HttpExceptions;
 using Yggdrasil.Services.PlayerNotification;
+using Yggdrasil.Services.PlayerRecord;
 
 namespace Yggdrasil
 {
@@ -25,7 +26,8 @@ namespace Yggdrasil
             services.AddControllersWithViews();
 
             services.AddSingleton<IDataAccessLayer, DataAccessLayer>()
-                .AddSingleton<IPlayerNotificationService, PlayerNotificationService>();
+                .AddSingleton<IPlayerNotificationService, PlayerNotificationService>()
+                .AddSingleton<IPlayerRecordService, PlayerRecordService>();
 
             services.AddControllers(options => options.Filters.Add(new HttpResponseExceptionFilter()));
         }
@@ -40,10 +42,12 @@ namespace Yggdrasil
                 var mongoDbConnectionString = Environment.GetEnvironmentVariable("MONGODB_URI", EnvironmentVariableTarget.User);
                 var mongoDbName = Environment.GetEnvironmentVariable("MONGODB_DB_NAME", EnvironmentVariableTarget.User);
                 var mongoDbCollection = Environment.GetEnvironmentVariable("MONGODB_COLLECTION_NAME", EnvironmentVariableTarget.User);
+                var adminApiKey = Environment.GetEnvironmentVariable("ADMIN_API_KEY", EnvironmentVariableTarget.User);
 
                 Environment.SetEnvironmentVariable("MONGODB_URI", mongoDbConnectionString);
                 Environment.SetEnvironmentVariable("MONGODB_DB_NAME", mongoDbName);
                 Environment.SetEnvironmentVariable("MONGODB_COLLECTION_NAME", mongoDbCollection);
+                Environment.SetEnvironmentVariable("ADMIN_API_KEY", adminApiKey);
             }
             else
             {
