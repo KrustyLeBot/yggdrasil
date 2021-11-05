@@ -1,12 +1,10 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Logging;
-using System;
+﻿using Microsoft.Extensions.Logging;
 using System.Collections.Generic;
-using System.Net.WebSockets;
-using System.Text;
-using System.Threading;
+using System.Net;
+using System.Net.Http;
 using System.Threading.Tasks;
 using Yggdrasil.DAL;
+using Yggdrasil.HttpExceptions;
 using Yggdrasil.Models;
 
 namespace Yggdrasil.Services.PlayerNotification
@@ -16,115 +14,36 @@ namespace Yggdrasil.Services.PlayerNotification
         private readonly ILogger<PlayerNotificationService> _logger;
         private readonly IDataAccessLayer _dataAccessLayer;
 
-        private Dictionary<string, WebSocket> _websocketList;
-
         public PlayerNotificationService(ILogger<PlayerNotificationService> logger, IDataAccessLayer dataAccessLayer)
         {
             _logger = logger;
             _dataAccessLayer = dataAccessLayer;
-
-            _websocketList = new Dictionary<string, WebSocket>();
         }
 
-        public async Task<int> CreatePlayerSocket(string apiKey, WebSocketManager webSockets)
-        {
-            var profile = await _dataAccessLayer.GetPlayerRecord(apiKey);
-
-            if(profile == null)
-            {
-                return 401;
-            }
-
-            if(_websocketList.ContainsKey(profile.ProfileId))
-            {
-                return 409;
-            }
-
-            var webSocket = await webSockets.AcceptWebSocketAsync();
-
-            // register the messaging queue
-            _websocketList.Add(profile.ProfileId, webSocket);
-
-            // empty offline notif list
-            await _dataAccessLayer.EmptyOfflineNotification(profile.ProfileId);
-
-            // send all offline notif
-            List<Task> tasks = new List<Task>();
-            foreach (var notif in profile.OfflineNotifications)
-            {
-                tasks.Add(SendPlayerNotification(notif.SenderProfileId, profile.ProfileId, notif.Content, true));
-            }
-            await Task.WhenAll(tasks);
-
-            _logger.Log(LogLevel.Information, "WebSocket connection established");
-            await KeepAlive(webSocket, profile.ProfileId);
-            return 200;
-        }
-
-        public async Task<int> SendPlayerNotification(string apiKey, PlayerNotificationModel notif)
+        public async Task SendPlayerNotification(string apiKey, PlayerNotificationModel notif)
         {
             var profile = await _dataAccessLayer.GetPlayerRecord(apiKey);
 
             if (profile == null)
             {
-                return 401;
+                throw new HttpResponseException(HttpStatusCode.Unauthorized, "No profile found matching apiKey provided.");
             }
 
-            if (_websocketList.TryGetValue(notif.RecipientProfileId, out WebSocket webSocket))
-            {
-                var message = Encoding.UTF8.GetBytes($"Server: Hello. {profile.ProfileId} sent you: {notif.Content}");
-                await webSocket.SendAsync(new ArraySegment<byte>(message, 0, message.Length), WebSocketMessageType.Text, true, CancellationToken.None);
-                _logger.Log(LogLevel.Information, "Message sent to Client");
-
-                return 200;
-            }
-
-
-            if(notif.IsOffline)
-            {
-                await _dataAccessLayer.InsertOfflineNotification(notif.RecipientProfileId, profile.ProfileId, notif.Content);
-                return 201;
-            }
-
-            return 410;
+            await _dataAccessLayer.InsertNotification(notif.RecipientProfileId, profile.ProfileId, notif.Content);
         }
 
-        private async Task<int> SendPlayerNotification(string senderProfileId, string recipientProfileId, string content, bool isOffline)
+        public async Task<List<DBPlayerNotification>> GetAllPlayerNotifications(string apiKey)
         {
-            if (_websocketList.TryGetValue(recipientProfileId, out WebSocket webSocket))
-            {
-                var message = Encoding.UTF8.GetBytes($"Server: Hello. {senderProfileId} sent you: {content}");
-                await webSocket.SendAsync(new ArraySegment<byte>(message, 0, message.Length), WebSocketMessageType.Text, true, CancellationToken.None);
-                _logger.Log(LogLevel.Information, "Message sent to Client");
+            var profile = await _dataAccessLayer.GetPlayerRecord(apiKey);
 
-                return 200;
+            if (profile == null)
+            {
+                throw new HttpResponseException(HttpStatusCode.Unauthorized, "No profile found matching apiKey provided.");
             }
 
+            await _dataAccessLayer.EmptyPlayerNotifications(profile.ProfileId);
 
-            if (isOffline)
-            {
-                await _dataAccessLayer.InsertOfflineNotification(recipientProfileId, senderProfileId, content);
-                return 201;
-            }
-
-            return 410;
-        }
-
-        private async Task KeepAlive(WebSocket webSocket, string profileId)
-        {
-            var buffer = new byte[1024 * 4];
-            var result = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
-            _logger.Log(LogLevel.Information, "Message received from Client");
-
-            while (!result.CloseStatus.HasValue)
-            {
-                result = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
-                _logger.Log(LogLevel.Information, "Message received from Client");
-
-            }
-            await webSocket.CloseAsync(result.CloseStatus.Value, result.CloseStatusDescription, CancellationToken.None);
-            _websocketList.Remove(profileId);
-            _logger.Log(LogLevel.Information, "WebSocket connection closed");
+            return profile.PlayerNotifications;
         }
     }
 }

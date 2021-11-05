@@ -5,6 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using System;
 using Yggdrasil.DAL;
+using Yggdrasil.HttpExceptions;
 using Yggdrasil.Services.PlayerNotification;
 
 namespace Yggdrasil
@@ -25,6 +26,8 @@ namespace Yggdrasil
 
             services.AddSingleton<IDataAccessLayer, DataAccessLayer>()
                 .AddSingleton<IPlayerNotificationService, PlayerNotificationService>();
+
+            services.AddControllers(options => options.Filters.Add(new HttpResponseExceptionFilter()));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -54,8 +57,6 @@ namespace Yggdrasil
             app.UseRouting();
 
             app.UseAuthorization();
-
-            app.UseWebSockets();
 
             app.UseEndpoints(endpoints =>
             {

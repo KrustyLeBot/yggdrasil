@@ -13,6 +13,6 @@ namespace Yggdrasil.Models
         public string ProfileId { get; set; }
 
         [BsonRequired]
-        public List<OfflinePlayerNotification> OfflineNotifications { get; set; }
+        public List<DBPlayerNotification> PlayerNotifications { get; set; }
     }
 }

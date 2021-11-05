@@ -37,24 +37,24 @@ namespace Yggdrasil.DAL
             return profile;
         }
 
-        public async Task InsertOfflineNotification(string recipientProfileId, string senderProfileId, string message)
+        public async Task InsertNotification(string recipientProfileId, string senderProfileId, string message)
         {
-            OfflinePlayerNotification notif = new OfflinePlayerNotification()
+            DBPlayerNotification notif = new DBPlayerNotification()
             {
                 SenderProfileId = senderProfileId,
                 Content = message
             };
 
             var update = Builders<PlayerRecordModel>.Update
-                .Push(doc => doc.OfflineNotifications, notif);
+                .Push(doc => doc.PlayerNotifications, notif);
 
             await _playerRecordCollection.UpdateOneAsync(doc => doc.ProfileId == recipientProfileId, update);
         }
 
-        public async Task EmptyOfflineNotification(string profileId)
+        public async Task EmptyPlayerNotifications(string profileId)
         {
             var update = Builders<PlayerRecordModel>.Update
-                .Set(doc => doc.OfflineNotifications, new List<OfflinePlayerNotification>());
+                .Set(doc => doc.PlayerNotifications, new List<DBPlayerNotification>());
 
             await _playerRecordCollection.UpdateOneAsync(doc => doc.ProfileId == profileId, update);
         }
