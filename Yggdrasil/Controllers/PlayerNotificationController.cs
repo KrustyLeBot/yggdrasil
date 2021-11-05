@@ -1,8 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using MongoDB.Bson.IO;
 using System.Diagnostics;
-using System.IO;
 using System.Threading.Tasks;
 using Yggdrasil.Models;
 using Yggdrasil.Services.PlayerNotification;
@@ -21,33 +19,21 @@ namespace Yggdrasil.Controllers
             _playerNotificationService = playerNotificationService;
         }
 
-        [HttpGet("ws")]
-        public async Task Get()
+        [HttpPost("playernotification")]
+        public async Task<IActionResult> PostPlayerNotification([FromBody] PlayerNotificationModel notif)
         {
             Request.Headers.TryGetValue("Authorization", out var apiKey);
 
-            if (HttpContext.WebSockets.IsWebSocketRequest)
-            {
-                var statusCode = await _playerNotificationService.CreatePlayerSocket(apiKey, HttpContext.WebSockets);
-
-                if(statusCode != 200)
-                {
-                    HttpContext.Response.StatusCode = statusCode;
-                }
-            }
-            else
-            {
-                HttpContext.Response.StatusCode = 400;
-            }
+            await _playerNotificationService.SendPlayerNotification(apiKey, notif);
+            return Ok();
         }
 
-        [HttpPost("playernotification")]
-        public async Task PostPlayerNotification([FromBody] PlayerNotificationModel notif)
+        [HttpGet("playernotification")]
+        public async Task<IActionResult> GetPlayerNotification()
         {
             Request.Headers.TryGetValue("Authorization", out var apiKey);
 
-            var statusCode = await _playerNotificationService.SendPlayerNotification(apiKey, notif);
-            HttpContext.Response.StatusCode = statusCode;
+            return Ok(await _playerNotificationService.GetAllPlayerNotifications(apiKey));
         }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
