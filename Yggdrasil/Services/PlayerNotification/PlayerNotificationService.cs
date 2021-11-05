@@ -1,7 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 using System.Collections.Generic;
 using System.Net;
-using System.Net.Http;
 using System.Threading.Tasks;
 using Yggdrasil.DAL;
 using Yggdrasil.HttpExceptions;
