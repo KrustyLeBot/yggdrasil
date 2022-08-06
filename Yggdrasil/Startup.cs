@@ -9,6 +9,7 @@ using System;
 using System.Text;
 using Yggdrasil.DAL;
 using Yggdrasil.HttpExceptions;
+using Yggdrasil.Services.ItemStore;
 using Yggdrasil.Services.PlayerNotification;
 using Yggdrasil.Services.PlayerRecord;
 
@@ -23,6 +24,7 @@ namespace Yggdrasil
             var mongoDbConnectionString = Environment.GetEnvironmentVariable("MONGODB_URI", EnvironmentVariableTarget.User);
             var mongoDbName = Environment.GetEnvironmentVariable("MONGODB_DB_NAME", EnvironmentVariableTarget.User);
             var playerRecordMongoDbCollection = Environment.GetEnvironmentVariable("MONGODB_COLLECTION_NAME_PLAYERRECORD", EnvironmentVariableTarget.User);
+            var itemStoreMongoDbCollection = Environment.GetEnvironmentVariable("MONGODB_COLLECTION_NAME_ITEMSTORE", EnvironmentVariableTarget.User);
             var jwtKey = Environment.GetEnvironmentVariable("JWT_KEY", EnvironmentVariableTarget.User);
 
             if (!mongoDbConnectionString.IsNullOrEmpty())
@@ -36,6 +38,10 @@ namespace Yggdrasil
             if (!playerRecordMongoDbCollection.IsNullOrEmpty())
             {
                 Environment.SetEnvironmentVariable("MONGODB_COLLECTION_NAME_PLAYERRECORD", playerRecordMongoDbCollection);
+            }
+            if (!itemStoreMongoDbCollection.IsNullOrEmpty())
+            {
+                Environment.SetEnvironmentVariable("MONGODB_COLLECTION_NAME_ITEMSTORE", itemStoreMongoDbCollection);
             }
             if (!jwtKey.IsNullOrEmpty())
             {
@@ -52,7 +58,8 @@ namespace Yggdrasil
 
             services.AddSingleton<IDataAccessLayer, DataAccessLayer>()
                 .AddSingleton<IPlayerNotificationService, PlayerNotificationService>()
-                .AddSingleton<IPlayerRecordService, PlayerRecordService>();
+                .AddSingleton<IPlayerRecordService, PlayerRecordService>()
+                .AddSingleton<IItemStoreService, ItemStoreService>();
 
             services.AddControllers(options => options.Filters.Add(new HttpResponseExceptionFilter()));
 

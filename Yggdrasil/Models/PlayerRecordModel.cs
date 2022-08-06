@@ -24,6 +24,9 @@ namespace Yggdrasil.Models
 
         [BsonRequired]
         public DateTime LastPnotSentTime { get; set; }
+        
+        [BsonRequired]
+        public List<InventoryItemModel> Inventory { get; set; }
     }
 
     public class PlayerRecordBaseInfo

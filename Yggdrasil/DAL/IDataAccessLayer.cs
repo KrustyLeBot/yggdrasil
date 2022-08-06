@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 using Yggdrasil.Models;
 
 namespace Yggdrasil.DAL
@@ -12,5 +13,8 @@ namespace Yggdrasil.DAL
         public Task EmptyPlayerNotifications(string profileId);
         public Task<PlayerRecordModel> CreatePlayerRecord(PlayerRecordBaseInfo info);
         public Task DeletePlayerRecord(string profileId);
+        public Task<List<ItemModel>> GetItemStore();
+        public Task InsertItem(ItemModel item);
+        public Task GrantItems(GrantedItems info);
     }
 }
