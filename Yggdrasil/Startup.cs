@@ -1,9 +1,12 @@
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.IdentityModel.Tokens;
 using System;
+using System.Text;
 using Yggdrasil.DAL;
 using Yggdrasil.HttpExceptions;
 using Yggdrasil.Services.PlayerNotification;
@@ -16,6 +19,28 @@ namespace Yggdrasil
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
+
+            var mongoDbConnectionString = Environment.GetEnvironmentVariable("MONGODB_URI", EnvironmentVariableTarget.User);
+            var mongoDbName = Environment.GetEnvironmentVariable("MONGODB_DB_NAME", EnvironmentVariableTarget.User);
+            var playerRecordMongoDbCollection = Environment.GetEnvironmentVariable("MONGODB_COLLECTION_NAME_PLAYERRECORD", EnvironmentVariableTarget.User);
+            var jwtKey = Environment.GetEnvironmentVariable("JWT_KEY", EnvironmentVariableTarget.User);
+
+            if (!mongoDbConnectionString.IsNullOrEmpty())
+            {
+                Environment.SetEnvironmentVariable("MONGODB_URI", mongoDbConnectionString);
+            }
+            if (!mongoDbName.IsNullOrEmpty())
+            {
+                Environment.SetEnvironmentVariable("MONGODB_DB_NAME", mongoDbName);
+            }
+            if (!playerRecordMongoDbCollection.IsNullOrEmpty())
+            {
+                Environment.SetEnvironmentVariable("MONGODB_COLLECTION_NAME_PLAYERRECORD", playerRecordMongoDbCollection);
+            }
+            if (!jwtKey.IsNullOrEmpty())
+            {
+                Environment.SetEnvironmentVariable("JWT_KEY", jwtKey);
+            }
         }
 
         public IConfiguration Configuration { get; }
@@ -30,6 +55,24 @@ namespace Yggdrasil
                 .AddSingleton<IPlayerRecordService, PlayerRecordService>();
 
             services.AddControllers(options => options.Filters.Add(new HttpResponseExceptionFilter()));
+
+            services.AddAuthentication(options =>
+            {
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            })
+            .AddJwtBearer(options =>
+            {
+                options.RequireHttpsMetadata = false;
+                options.SaveToken = true;
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(Environment.GetEnvironmentVariable("JWT_KEY"))),
+                    ValidateIssuer = false,
+                    ValidateAudience = false
+                };
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -38,16 +81,6 @@ namespace Yggdrasil
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
-
-                var mongoDbConnectionString = Environment.GetEnvironmentVariable("MONGODB_URI", EnvironmentVariableTarget.User);
-                var mongoDbName = Environment.GetEnvironmentVariable("MONGODB_DB_NAME", EnvironmentVariableTarget.User);
-                var mongoDbCollection = Environment.GetEnvironmentVariable("MONGODB_COLLECTION_NAME", EnvironmentVariableTarget.User);
-                var adminApiKey = Environment.GetEnvironmentVariable("ADMIN_API_KEY", EnvironmentVariableTarget.User);
-
-                Environment.SetEnvironmentVariable("MONGODB_URI", mongoDbConnectionString);
-                Environment.SetEnvironmentVariable("MONGODB_DB_NAME", mongoDbName);
-                Environment.SetEnvironmentVariable("MONGODB_COLLECTION_NAME", mongoDbCollection);
-                Environment.SetEnvironmentVariable("ADMIN_API_KEY", adminApiKey);
             }
             else
             {

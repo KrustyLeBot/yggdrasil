@@ -8,10 +8,16 @@ namespace Yggdrasil.Models
     public class PlayerRecordModel
     {
         [BsonRequired]
-        public string ApiKey { get; set; }
+        public string Email { get; set; }
+
+        [BsonRequired]
+        public string Password { get; set; }
 
         [BsonRequired]
         public string ProfileId { get; set; }
+        
+        [BsonRequired]
+        public bool IsAdmin { get; set; }
 
         [BsonRequired]
         public List<DBPlayerNotification> PlayerNotifications { get; set; }
@@ -22,7 +28,7 @@ namespace Yggdrasil.Models
 
     public class PlayerRecordBaseInfo
     {
-        public string ApiKey { get; set; }
-        public string ProfileId { get; set; }
+        public string Email { get; set; }
+        public string Password { get; set; }
     }
 }

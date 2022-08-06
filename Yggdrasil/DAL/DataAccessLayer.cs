@@ -21,25 +21,33 @@ namespace Yggdrasil.DAL
 
             var mongoDbConnectionString = Environment.GetEnvironmentVariable("MONGODB_URI");
             var mongoDbName = Environment.GetEnvironmentVariable("MONGODB_DB_NAME");
-            var mongoDbCollection = Environment.GetEnvironmentVariable("MONGODB_COLLECTION_NAME");
+            var playerRecordMongoDbCollection = Environment.GetEnvironmentVariable("MONGODB_COLLECTION_NAME_PLAYERRECORD");
 
             var settings = MongoClientSettings.FromConnectionString(mongoDbConnectionString);
             _mongoClient = new MongoClient(settings);
             _database = _mongoClient.GetDatabase(mongoDbName);
-            _playerRecordCollection = _database.GetCollection<PlayerRecordModel>(mongoDbCollection);
-        }
-
-        public async Task<PlayerRecordModel> GetPlayerRecordByApiKey(string apiKey)
-        {
-            IAsyncCursor<PlayerRecordModel> cursor = await _playerRecordCollection.FindAsync(doc => doc.ApiKey == apiKey);
-            var profile = await cursor.FirstOrDefaultAsync();
-
-            return profile;
+            _playerRecordCollection = _database.GetCollection<PlayerRecordModel>(playerRecordMongoDbCollection);
         }
 
         public async Task<PlayerRecordModel> GetPlayerRecordByProfileId(string profileId)
         {
             IAsyncCursor<PlayerRecordModel> cursor = await _playerRecordCollection.FindAsync(doc => doc.ProfileId == profileId);
+            var profile = await cursor.FirstOrDefaultAsync();
+
+            return profile;
+        }
+        
+        public async Task<PlayerRecordModel> GetPlayerRecordByEmail(string email)
+        {
+            IAsyncCursor<PlayerRecordModel> cursor = await _playerRecordCollection.FindAsync(doc => doc.Email == email);
+            var profile = await cursor.FirstOrDefaultAsync();
+
+            return profile;
+        }
+        
+        public async Task<PlayerRecordModel> GetPlayerRecordByEmailAndPassword(string email, string password)
+        {
+            IAsyncCursor<PlayerRecordModel> cursor = await _playerRecordCollection.FindAsync(doc => ((doc.Email == email) && (doc.Password == password)));
             var profile = await cursor.FirstOrDefaultAsync();
 
             return profile;
@@ -72,17 +80,20 @@ namespace Yggdrasil.DAL
             await _playerRecordCollection.UpdateOneAsync(doc => doc.ProfileId == profileId, update);
         }
 
-        public async Task CreatePlayerRecord(PlayerRecordBaseInfo info)
+        public async Task<PlayerRecordModel> CreatePlayerRecord(PlayerRecordBaseInfo info)
         {
             PlayerRecordModel record = new PlayerRecordModel()
             {
-                ProfileId = info.ProfileId,
-                ApiKey = info.ApiKey,
+                ProfileId = Guid.NewGuid().ToString(),
+                Email = info.Email,
+                Password = info.Password, //save only hash ??
+                IsAdmin = false,
                 PlayerNotifications = new List<DBPlayerNotification>(),
                 LastPnotSentTime = DateTime.MinValue
             };
 
             await _playerRecordCollection.InsertOneAsync(record);
+            return record;
         }
 
         public async Task DeletePlayerRecord(string profileId)

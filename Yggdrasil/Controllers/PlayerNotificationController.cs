@@ -1,14 +1,16 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using System.Diagnostics;
-using System.Net;
+using System.Security.Claims;
 using System.Threading.Tasks;
-using Yggdrasil.HttpExceptions;
 using Yggdrasil.Models;
 using Yggdrasil.Services.PlayerNotification;
 
 namespace Yggdrasil.Controllers
 {
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     [Route("/[controller]")]
     public class PlayerNotificationController : Controller
     {
@@ -26,16 +28,14 @@ namespace Yggdrasil.Controllers
         [HttpPost("admin/playernotification")]
         public async Task<IActionResult> PostPlayerNotificationAdmin([FromBody] PlayerNotificationModel notif)
         {
-            Request.Headers.TryGetValue("Authorization", out var apiKey);
-            Request.Headers.TryGetValue("AppId", out var appId);
-
-            if(appId.ToString() == "")
+            var identity = HttpContext.User.Identity as ClaimsIdentity;
+            if (identity != null)
             {
-                throw new HttpResponseException(HttpStatusCode.BadRequest, "Invalid app id.");
+                await _playerNotificationService.SendPlayerNotificationAdmin(notif, identity.FindFirst("ProfileId").Value);
+                return Ok();
             }
 
-            await _playerNotificationService.SendPlayerNotificationAdmin(apiKey, notif, appId);
-            return Ok();
+            return Unauthorized();
         }
         /////////////////////////////////////////////////////////////////////////////////////////
 
@@ -44,18 +44,26 @@ namespace Yggdrasil.Controllers
         [HttpPost("client/playernotification")]
         public async Task<IActionResult> PostPlayerNotification([FromBody] PlayerNotificationModel notif)
         {
-            Request.Headers.TryGetValue("Authorization", out var apiKey);
+            var identity = HttpContext.User.Identity as ClaimsIdentity;
+            if (identity != null)
+            {
+                await _playerNotificationService.SendPlayerNotification(identity.FindFirst("ProfileId").Value, notif);
+                return Ok();
+            }
 
-            await _playerNotificationService.SendPlayerNotification(apiKey, notif);
-            return Ok();
+            return Unauthorized();
         }
 
         [HttpGet("client/playernotification")]
         public async Task<IActionResult> GetPlayerNotification()
         {
-            Request.Headers.TryGetValue("Authorization", out var apiKey);
+            var identity = HttpContext.User.Identity as ClaimsIdentity;
+            if (identity != null)
+            {
+                return Ok(await _playerNotificationService.GetAllPlayerNotifications(identity.FindFirst("ProfileId").Value));
+            }
 
-            return Ok(await _playerNotificationService.GetAllPlayerNotifications(apiKey));
+            return Unauthorized();
         }
         /////////////////////////////////////////////////////////////////////////////////////////
 

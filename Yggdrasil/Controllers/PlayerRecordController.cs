@@ -1,14 +1,17 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using System.Collections.Generic;
 using System.Diagnostics;
-using System.Net;
+using System.Security.Claims;
 using System.Threading.Tasks;
-using Yggdrasil.HttpExceptions;
 using Yggdrasil.Models;
 using Yggdrasil.Services.PlayerRecord;
 
 namespace Yggdrasil.Controllers
 {
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     [Route("/[controller]")]
     public class PlayerRecordController : Controller
     {
@@ -23,22 +26,55 @@ namespace Yggdrasil.Controllers
 
         /////////////////////////////////////////////////////////////////////////////////////////
         // Admin
-        [HttpPut("admin/playerrecord")]
-        public async Task<IActionResult> CreatePlayerRecord([FromBody] PlayerRecordBaseInfo info)
-        {
-            Request.Headers.TryGetValue("Authorization", out var apiKey);
-
-            await _playerRecordService.CreatePlayerRecord(apiKey, info);
-            return Ok();
-        }
-
         [HttpDelete("admin/playerrecord")]
         public async Task<IActionResult> DeletePlayerRecord([FromQuery] string profileId)
         {
-            Request.Headers.TryGetValue("Authorization", out var apiKey);
+            var identity = HttpContext.User.Identity as ClaimsIdentity;
+            if (identity != null)
+            {
+                await _playerRecordService.DeletePlayerRecord(identity.FindFirst("ProfileId").Value, profileId);
+                return Ok();
+            }
 
-            await _playerRecordService.DeletePlayerRecord(apiKey, profileId);
-            return Ok();
+            return Unauthorized();
+        }
+        /////////////////////////////////////////////////////////////////////////////////////////
+
+        /////////////////////////////////////////////////////////////////////////////////////////
+        // Client
+        [AllowAnonymous]
+        [HttpPost("client/login")]
+        public async Task<IActionResult> Login([FromBody] PlayerRecordBaseInfo info)
+        {
+            var token = await _playerRecordService.Authenticate(info.Email, info.Password);
+
+            if (token == null)
+            {
+                return Unauthorized();
+            }
+
+            return Ok(new { token });
+        }
+
+        [AllowAnonymous]
+        [HttpPost("client/createplayerrecord")]
+        public async Task<IActionResult> CreatePlayerrecord([FromBody] PlayerRecordBaseInfo info)
+        {
+            PlayerRecordModel record = await _playerRecordService.CreatePlayerRecord(info);
+            return Ok(record);
+        }
+
+        [HttpGet("client/getplayerrecord")]
+        public async Task<IActionResult> GetPlayerRecord(string profileId)
+        {
+            var identity = HttpContext.User.Identity as ClaimsIdentity;
+            if (identity != null)
+            {
+                PlayerRecordModel record = await _playerRecordService.GetPlayerRecordByProfileId(identity.FindFirst("ProfileId").Value);
+                return Ok(record);
+            }
+
+            return Unauthorized();
         }
         /////////////////////////////////////////////////////////////////////////////////////////
 
