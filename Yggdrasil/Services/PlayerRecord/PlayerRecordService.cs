@@ -89,14 +89,12 @@ namespace Yggdrasil.Services.PlayerRecord
         public async Task<PlayerRecordModel> GetPlayerRecordByProfileId(string profileId)
         {
             PlayerRecordModel record = await _dataAccessLayer.GetPlayerRecordByProfileId(profileId);
-            record.Password = "";
             return record;
         }
 
         public async Task<PlayerRecordModel> GetPlayerRecordByEmail(string email)
         {
             PlayerRecordModel record = await _dataAccessLayer.GetPlayerRecordByEmail(email);
-            record.Password = "";
             return record;
         }
         

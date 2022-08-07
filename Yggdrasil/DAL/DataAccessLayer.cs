@@ -2,6 +2,8 @@
 using MongoDB.Driver;
 using System;
 using System.Collections.Generic;
+using System.Security.Cryptography;
+using System.Text;
 using System.Threading.Tasks;
 using Yggdrasil.Models;
 
@@ -37,6 +39,11 @@ namespace Yggdrasil.DAL
             IAsyncCursor<PlayerRecordModel> cursor = await _playerRecordCollection.FindAsync(doc => doc.ProfileId == profileId);
             var profile = await cursor.FirstOrDefaultAsync();
 
+            if (profile != null)
+            {
+                profile.Password = "";
+            }
+            
             return profile;
         }
         
@@ -45,14 +52,23 @@ namespace Yggdrasil.DAL
             IAsyncCursor<PlayerRecordModel> cursor = await _playerRecordCollection.FindAsync(doc => doc.Email == email);
             var profile = await cursor.FirstOrDefaultAsync();
 
+            if (profile != null)
+            {
+                profile.Password = "";
+            }
+
             return profile;
         }
         
         public async Task<PlayerRecordModel> GetPlayerRecordByEmailAndPassword(string email, string password)
         {
-            //TODO check password hash
-            IAsyncCursor<PlayerRecordModel> cursor = await _playerRecordCollection.FindAsync(doc => ((doc.Email == email) && (doc.Password == password)));
+            IAsyncCursor<PlayerRecordModel> cursor = await _playerRecordCollection.FindAsync(doc => ((doc.Email == email) && (doc.Password == sha256(password))));
             var profile = await cursor.FirstOrDefaultAsync();
+
+            if (profile != null)
+            {
+                profile.Password = "";
+            }
 
             return profile;
         }
@@ -90,7 +106,7 @@ namespace Yggdrasil.DAL
             {
                 ProfileId = Guid.NewGuid().ToString(),
                 Email = info.Email,
-                Password = info.Password, //TODO save only hash
+                Password = sha256(info.Password),
                 IsAdmin = false,
                 PlayerNotifications = new List<DBPlayerNotification>(),
                 LastPnotSentTime = DateTime.MinValue,
@@ -98,6 +114,7 @@ namespace Yggdrasil.DAL
             };
 
             await _playerRecordCollection.InsertOneAsync(record);
+            record.Password = "";
             return record;
         }
 
@@ -188,6 +205,18 @@ namespace Yggdrasil.DAL
 
             await Task.WhenAll(tasksAddToSet);
             await Task.WhenAll(tasksUpdateQuantity);
+        }
+
+        static string sha256(string randomString)
+        {
+            var crypt = SHA256.Create();
+            var hash = new System.Text.StringBuilder();
+            byte[] crypto = crypt.ComputeHash(Encoding.UTF8.GetBytes(randomString));
+            foreach (byte theByte in crypto)
+            {
+                hash.Append(theByte.ToString("x2"));
+            }
+            return hash.ToString();
         }
     }
 }
