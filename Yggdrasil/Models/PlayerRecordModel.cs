@@ -5,7 +5,7 @@ using System.Collections.Generic;
 namespace Yggdrasil.Models
 {
     [BsonIgnoreExtraElements]
-    public class PlayerRecordModel
+    public class PlayerRecordDBModel
     {
         [BsonRequired]
         public string Email { get; set; }
@@ -27,6 +27,42 @@ namespace Yggdrasil.Models
         
         [BsonRequired]
         public List<InventoryItemModel> Inventory { get; set; }
+    }
+
+    public class PlayerRecordInternalModel
+    {
+        public string Email { get; set; }
+        public string ProfileId { get; set; }
+        public bool IsAdmin { get; set; }
+        public List<DBPlayerNotification> PlayerNotifications { get; set; }
+        public DateTime LastPnotSentTime { get; set; }
+        public List<InventoryItemModel> Inventory { get; set; }
+
+        public static implicit operator PlayerRecordInternalModel(PlayerRecordDBModel x)
+        {
+            PlayerRecordInternalModel record = new PlayerRecordInternalModel();
+            record.Email = x.Email;
+            record.ProfileId = x.ProfileId;
+            record.IsAdmin = x.IsAdmin;
+            record.PlayerNotifications = x.PlayerNotifications;
+            record.LastPnotSentTime = x.LastPnotSentTime;
+            record.Inventory = x.Inventory;
+            return record;
+        }
+    }
+
+    public class PlayerRecordRVModel
+    {
+        public string Email { get; set; }
+        public string ProfileId { get; set; }
+
+        public static implicit operator PlayerRecordRVModel(PlayerRecordInternalModel x)
+        {
+            PlayerRecordRVModel record = new PlayerRecordRVModel();
+            record.Email = x.Email;
+            record.ProfileId = x.ProfileId;
+            return record;
+        }
     }
 
     public class PlayerRecordBaseInfo

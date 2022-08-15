@@ -6,10 +6,17 @@ namespace Yggdrasil.Services.PlayerRecord
     public interface IPlayerRecordService
     {
         public Task<string> Authenticate(string email, string password);
-        public Task<PlayerRecordModel> CreatePlayerRecord(PlayerRecordBaseInfo info);
+        public Task<PlayerRecordRVModel> CreatePlayerRecord(PlayerRecordBaseInfo info);
         public Task DeletePlayerRecord(string callerProfileId, string profileId);
-        public Task<PlayerRecordModel> GetPlayerRecordByProfileId(string profileId);
-        public Task<PlayerRecordModel> GetPlayerRecordByEmail(string email);
-        public Task<PlayerRecordModel> GetPlayerRecordByEmailAndPassword(string email, string password);
+
+        //External use
+        public Task<PlayerRecordRVModel> GetPlayerRecordByProfileId(string profileId);
+        public Task<PlayerRecordRVModel> GetPlayerRecordByEmail(string email);
+        public Task<PlayerRecordRVModel> GetPlayerRecordByEmailAndPassword(string email, string password);
+
+        //Internal use
+        public Task<PlayerRecordInternalModel> InternalGetPlayerRecordByProfileId(string profileId);
+        public Task<PlayerRecordInternalModel> InternalGetPlayerRecordByEmail(string email);
+        public Task<PlayerRecordInternalModel> InternalGetPlayerRecordByEmailAndPassword(string email, string password);
     }
 }

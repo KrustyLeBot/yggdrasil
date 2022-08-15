@@ -25,8 +25,8 @@ namespace Yggdrasil.Services.PlayerNotification
 
         public async Task SendPlayerNotification(string senderProfileId, PlayerNotificationModel notif)
         {
-            var profileSender = await _playerRecordService.GetPlayerRecordByProfileId(senderProfileId);
-            var profileReceiver = await _playerRecordService.GetPlayerRecordByProfileId(notif.RecipientProfileId);
+            PlayerRecordInternalModel profileSender = await _playerRecordService.InternalGetPlayerRecordByProfileId(senderProfileId);
+            PlayerRecordInternalModel profileReceiver = await _playerRecordService.InternalGetPlayerRecordByProfileId(notif.RecipientProfileId);
 
             if (profileSender == null)
             {
@@ -48,14 +48,14 @@ namespace Yggdrasil.Services.PlayerNotification
 
         public async Task SendPlayerNotificationAdmin(PlayerNotificationModel notif, string senderAppId)
         {
-            var callerProfile = await _dataAccessLayer.GetPlayerRecordByProfileId(senderAppId);
+            PlayerRecordInternalModel callerProfile = await _playerRecordService.InternalGetPlayerRecordByProfileId(senderAppId);
 
             if (callerProfile == null || !callerProfile.IsAdmin)
             {
                 throw new HttpResponseException(HttpStatusCode.Unauthorized, "Caller does not have admin status.");
             }
 
-            var profileReceiver = await _dataAccessLayer.GetPlayerRecordByProfileId(notif.RecipientProfileId);
+            PlayerRecordInternalModel profileReceiver = await _playerRecordService.InternalGetPlayerRecordByProfileId(notif.RecipientProfileId);
 
             if (profileReceiver == null)
             {
@@ -67,7 +67,7 @@ namespace Yggdrasil.Services.PlayerNotification
 
         public async Task<List<DBPlayerNotification>> GetAllPlayerNotifications(string profileId)
         {
-            var profile = await _playerRecordService.GetPlayerRecordByProfileId(profileId);
+            PlayerRecordInternalModel profile = await _playerRecordService.InternalGetPlayerRecordByProfileId(profileId);
 
             if (profile == null)
             {

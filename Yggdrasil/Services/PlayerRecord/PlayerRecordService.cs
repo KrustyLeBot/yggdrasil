@@ -57,7 +57,7 @@ namespace Yggdrasil.Services.PlayerRecord
             return tokenhHandler.WriteToken(token);
         }
 
-        public async Task<PlayerRecordModel> CreatePlayerRecord(PlayerRecordBaseInfo info)
+        public async Task<PlayerRecordRVModel> CreatePlayerRecord(PlayerRecordBaseInfo info)
         {
             var profile = await _dataAccessLayer.GetPlayerRecordByEmail(info.Email);
             if (profile != null)
@@ -86,19 +86,32 @@ namespace Yggdrasil.Services.PlayerRecord
             await _dataAccessLayer.DeletePlayerRecord(profileId);
         }
 
-        public async Task<PlayerRecordModel> GetPlayerRecordByProfileId(string profileId)
+        public async Task<PlayerRecordRVModel> GetPlayerRecordByProfileId(string profileId)
         {
-            PlayerRecordModel record = await _dataAccessLayer.GetPlayerRecordByProfileId(profileId);
-            return record;
+            return await _dataAccessLayer.GetPlayerRecordByProfileId(profileId);
         }
 
-        public async Task<PlayerRecordModel> GetPlayerRecordByEmail(string email)
+        public async Task<PlayerRecordRVModel> GetPlayerRecordByEmail(string email)
         {
-            PlayerRecordModel record = await _dataAccessLayer.GetPlayerRecordByEmail(email);
-            return record;
+            return await _dataAccessLayer.GetPlayerRecordByEmail(email);
         }
         
-        public async Task<PlayerRecordModel> GetPlayerRecordByEmailAndPassword(string email, string password)
+        public async Task<PlayerRecordRVModel> GetPlayerRecordByEmailAndPassword(string email, string password)
+        {
+            return await _dataAccessLayer.GetPlayerRecordByEmailAndPassword(email, password);
+        }
+
+        public async Task<PlayerRecordInternalModel> InternalGetPlayerRecordByProfileId(string profileId)
+        {
+            return await _dataAccessLayer.GetPlayerRecordByProfileId(profileId);
+        }
+
+        public async Task<PlayerRecordInternalModel> InternalGetPlayerRecordByEmail(string email)
+        {
+            return await _dataAccessLayer.GetPlayerRecordByEmail(email);
+        }
+
+        public async Task<PlayerRecordInternalModel> InternalGetPlayerRecordByEmailAndPassword(string email, string password)
         {
             return await _dataAccessLayer.GetPlayerRecordByEmailAndPassword(email, password);
         }

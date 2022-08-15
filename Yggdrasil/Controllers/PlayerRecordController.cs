@@ -60,8 +60,7 @@ namespace Yggdrasil.Controllers
         [HttpPost("client/createplayerrecord")]
         public async Task<IActionResult> CreatePlayerrecord([FromBody] PlayerRecordBaseInfo info)
         {
-            PlayerRecordModel record = await _playerRecordService.CreatePlayerRecord(info);
-            return Ok(record);
+            return Ok(await _playerRecordService.CreatePlayerRecord(info));
         }
 
         [HttpGet("client/getplayerrecord")]
@@ -70,8 +69,7 @@ namespace Yggdrasil.Controllers
             var identity = HttpContext.User.Identity as ClaimsIdentity;
             if (identity != null)
             {
-                PlayerRecordModel record = await _playerRecordService.GetPlayerRecordByProfileId(identity.FindFirst("ProfileId").Value);
-                return Ok(record);
+                return Ok(await _playerRecordService.GetPlayerRecordByProfileId(identity.FindFirst("ProfileId").Value));
             }
 
             return Unauthorized();

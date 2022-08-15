@@ -30,7 +30,7 @@ namespace Yggdrasil.Services.ItemStore
 
         public async Task<List<InventoryItemModel>> GetPlayerInventory(string profileId)
         {
-            var profile = await _playerRecordService.GetPlayerRecordByProfileId(profileId);
+            PlayerRecordInternalModel profile = await _playerRecordService.InternalGetPlayerRecordByProfileId(profileId);
 
             if (profile == null)
             {
@@ -42,7 +42,7 @@ namespace Yggdrasil.Services.ItemStore
 
         public async Task GrantItemAdmin(string appId, GrantedItems info)
         {
-            var callerProfile = await _dataAccessLayer.GetPlayerRecordByProfileId(appId);
+            PlayerRecordInternalModel callerProfile = await _playerRecordService.InternalGetPlayerRecordByProfileId(appId);
 
             if (callerProfile == null || !callerProfile.IsAdmin)
             {
@@ -54,7 +54,7 @@ namespace Yggdrasil.Services.ItemStore
 
         public async Task InsertItemAdmin(string appId, ItemModel item)
         {
-            var callerProfile = await _dataAccessLayer.GetPlayerRecordByProfileId(appId);
+            PlayerRecordInternalModel callerProfile = await _playerRecordService.InternalGetPlayerRecordByProfileId(appId);
 
             if (callerProfile == null || !callerProfile.IsAdmin)
             {
