@@ -28,7 +28,7 @@ namespace Yggdrasil.Services.PlayerRecord
 
         public async Task<string> Authenticate(string email, string password)
         {
-            var playerRecord = await GetPlayerRecordByEmailAndPassword(email, password);
+            PlayerRecordInternalModel playerRecord = await InternalGetPlayerRecordByEmailAndPassword(email, password);
 
             if(playerRecord == null)
             {
@@ -59,7 +59,7 @@ namespace Yggdrasil.Services.PlayerRecord
 
         public async Task<PlayerRecordRVModel> CreatePlayerRecord(PlayerRecordBaseInfo info)
         {
-            var profile = await _dataAccessLayer.GetPlayerRecordByEmail(info.Email);
+            PlayerRecordInternalModel profile = await _dataAccessLayer.GetPlayerRecordByEmail(info.Email);
             if (profile != null)
             {
                 throw new HttpResponseException(HttpStatusCode.BadRequest, "Profile already exist.");
@@ -70,14 +70,14 @@ namespace Yggdrasil.Services.PlayerRecord
 
         public async Task DeletePlayerRecord(string callerProfileId, string profileId)
         {
-            var callerProfile = await _dataAccessLayer.GetPlayerRecordByProfileId(callerProfileId);
+            PlayerRecordInternalModel callerProfile = await _dataAccessLayer.GetPlayerRecordByProfileId(callerProfileId);
 
             if(callerProfile == null || !callerProfile.IsAdmin)
             {
                 throw new HttpResponseException(HttpStatusCode.Unauthorized, "Caller does not have admin status.");
             }
 
-            var profile = await _dataAccessLayer.GetPlayerRecordByProfileId(profileId);
+            PlayerRecordInternalModel profile = await _dataAccessLayer.GetPlayerRecordByProfileId(profileId);
             if(profile == null)
             {
                 throw new HttpResponseException(HttpStatusCode.NotFound, "Profile does not exist.");
