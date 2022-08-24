@@ -1,4 +1,4 @@
-# yggdrasil
+# Yggdrasil
 
 Simple online backbone for small games.
 
